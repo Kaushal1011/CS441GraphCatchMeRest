@@ -1,0 +1,328 @@
+{
+	"info": {
+		"_postman_id": "f2e4dc33-0f62-486e-b797-373623ebeef1",
+		"name": "CatchMeGame",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30303534"
+	},
+	"item": [
+		{
+			"name": "Init for Catch Me",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "ifilosemyselftonightiwillblamescala",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"regionalGraphPath\": \"./input/edges.txt\",\r\n    \"queryGraphPath\": \"./input/edgesPerturbed.txt\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/init",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"init"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Init for Catch Me",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"regionalGraphPath\": \"./input/edges.txt\",\r\n    \"queryGraphPath\": \"./input/edgesPerturbed.txt\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/init",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"init"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "akka-http/10.6.0"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 09 Nov 2023 09:47:18 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "46"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"policeLoc\": 50,\n    \"thiefLoc\": 53,\n    \"winner\": \"None\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Reset Params",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "ifilosemyselftonightiwillblamescala",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"regionalGraphPath\": \"./input/edges.txt\",\r\n    \"queryGraphPath\": \"./input/edgesPerturbed.txt\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/reset",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"reset"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Reset Params",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"regionalGraphPath\": \"./input/edges.txt\",\r\n    \"queryGraphPath\": \"./input/edgesPerturbed.txt\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/reset",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"reset"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "akka-http/10.6.0"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 09 Nov 2023 09:49:09 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "46"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"policeLoc\": 27,\n    \"thiefLoc\": 41,\n    \"winner\": \"None\"\n}"
+				}
+			]
+		},
+		{
+			"name": "queryGraphPath",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/querygraph",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"querygraph"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "queryGraphPath",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/querygraph",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"querygraph"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "akka-http/10.6.0"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 09 Nov 2023 09:49:46 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "47"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"queryGraphPath\": \"./input/edgesPerturbed.txt\"\n}"
+				}
+			]
+		},
+		{
+			"name": "query agent",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"agentName\":\"thief\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/queryagent",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"queryagent"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "query agent",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"agentName\":\"police\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/queryagent",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"queryagent"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Server",
+							"value": "akka-http/10.6.0"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 09 Nov 2023 09:51:42 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "275"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"adjacentNodes\": [\n        {\n            \"childPropsHash\": [],\n            \"id\": 31,\n            \"props\": [\n                88,\n                78,\n                14,\n                25,\n                89,\n                5,\n                88,\n                94,\n                9,\n                28,\n                53,\n                82,\n                2,\n                38,\n                33,\n                17\n            ],\n            \"valuableFlag\": false\n        }\n    ],\n    \"currentLocation\": {\n        \"childPropsHash\": [],\n        \"id\": 27,\n        \"props\": [\n            40,\n            11,\n            62,\n            59,\n            25,\n            51,\n            43,\n            7,\n            5,\n            42,\n            90,\n            86,\n            13,\n            36,\n            51,\n            28,\n            48,\n            94,\n            96\n        ],\n        \"valuableFlag\": false\n    },\n    \"name\": \"police\"\n}"
+				}
+			]
+		}
+	]
+}
