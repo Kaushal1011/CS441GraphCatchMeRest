@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Graph Visualizer</title>
+    <style>
+        #graphContainer {
+            width: 100%;
+            height: 600px;
+            border: 1px solid black;
+        }
+
+        .node {
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+
+        .valuable {
+            fill: red;
+        }
+
+        .normal {
+            fill: blue;
+        }
+
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+<input type="file" id="fileInput">
+<div id="graphContainer"></div>
+
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script>
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(fileEvent) {
+            const text = fileEvent.target.result;
+            const edges = parseEdges(text);
+            visualizeGraph(edges);
+        };
+        reader.readAsText(file);
+    });
+
+    function parseEdgeData(input) {
+        const pattern = /\((-?\d+), (-?\d+), (-?\d+(?:\.\d+)?(?:[Ee][-+]?\d+)?), List\(([^)]*)\), List\(([^)]*)\), List\(([^)]*)\), List\(([^)]*)\), (true|false), (true|false)\)\s*/;
+
+        const match = input.match(pattern);
+        if (match) {
+            const [
+                , srcId, dstId, weight,
+                propertiesSrc, propertiesDst,
+                childrenPropHashSrc, childrenPropHashDst,
+                valuableSrc, valuableDst
+            ] = match;
+
+            return {
+                srcId: parseInt(srcId),
+                dstId: parseInt(dstId),
+                weight: parseFloat(weight),
+                propertiesSrc: parseList(propertiesSrc),
+                propertiesDst: parseList(propertiesDst),
+                childrenPropHashSrc: parseList(childrenPropHashSrc),
+                childrenPropHashDst: parseList(childrenPropHashDst),
+                valuableSrc: valuableSrc === 'true',
+                valuableDst: valuableDst === 'true'
+            };
+        } else {
+            console.error("Invalid input format: " + input); // Log the problematic input
+            return null; // Return null instead of throwing an error
+        }
+    }
+load
+    function parseList(listString) {
+        return listString.split(', ').map(Number).filter(n => !isNaN(n));
+    }
+
+    function parseEdges(text) {
+        const lines = text.split('\n');
+        return lines.map(line => parseEdgeData(line)).filter(edge => edge !== null);
+    }
+
+    function visualizeGraph(edges) {
+        const nodes = {};
+        edges.forEach(edge => {
+            if (!nodes[edge.srcId]) {
+                nodes[edge.srcId] = { id: edge.srcId, valuable: edge.valuableSrc };
+            }
+            if (!nodes[edge.dstId]) {
+                nodes[edge.dstId] = { id: edge.dstId, valuable: edge.valuableDst };
+            }
+        });
+
+        const width = 960, height = 600;
+        const svg = d3.select('#graphContainer').append('svg')
+            .attr('width', width)
+            .attr('height', height);
+
+        const simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id(d => d.id))
+            .force("charge", d3.forceManyBody())
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        // Convert edges to use node IDs
+        const graphEdges = edges.map(edge => ({
+            source: edge.srcId,
+            target: edge.dstId
+        }));
+
+        const link = svg.append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(graphEdges)
+            .enter().append("line")
+            .attr("class", "link");
+
+        const node = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("circle")
+            .data(Object.values(nodes))
+            .enter().append("circle")
+            .attr("class", d => d.valuable ? "node valuable" : "node normal")
+            .attr("r", 5)
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        simulation
+            .nodes(Object.values(nodes))
+            .on("tick", ticked);
+
+        simulation.force("link")
+            .links(graphEdges);
+
+        function ticked() {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+        }
+
+        function dragstarted(d) {
+            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+        function dragended(d) {
+            if (!d3.event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+    }
+</script>
+</body>
+</html>

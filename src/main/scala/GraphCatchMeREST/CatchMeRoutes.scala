@@ -19,10 +19,28 @@ case class EnvConfigRequest(regionalGraphPath: String, queryGraphPath: String)
 case class AgentDataRequest(agentName: String)
 case class queryGraphPathResponse(queryGraphPath: String)
 
+import akka.http.scaladsl.model._
+import akka.http.scaladsl.server._
+import Directives._
+import akka.http.scaladsl.server.ExceptionHandler
+
 
 
 
 class CatchMeRoutes (catchMeRegistry: ActorRef[CatchMeGameRegistry.Command])(implicit val system: ActorSystem[_]) {
+
+  implicit val myExceptionHandler: ExceptionHandler = ExceptionHandler {
+    case ex: ArithmeticException =>
+      extractUri { uri =>
+        println(s"Request to $uri could not be handled normally")
+        complete(HttpResponse(StatusCodes.InternalServerError, entity = "Bad numbers, bad result!!!"))
+      }
+    case ex: Exception =>
+      extractUri { uri =>
+        println(s"Request to $uri could not be handled normally")
+        complete(HttpResponse(StatusCodes.InternalServerError, entity = "An error occurred: " + ex.getMessage))
+      }
+  }
 
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import JsonFormats._
@@ -58,7 +76,7 @@ class CatchMeRoutes (catchMeRegistry: ActorRef[CatchMeGameRegistry.Command])(imp
       GameState(env.currentPoliceNode.asInstanceOf[ComparableNode].id, env.currentThiefNode.asInstanceOf[ComparableNode].id, "Thief")
     }
     else {
-      GameState(env.currentPoliceNode.getOrElse(ComparableNode()).id, env.currentThiefNode.getOrElse(ComparableNode()).id, "None")
+      GameState(env.currentPoliceNode.id, env.currentThiefNode.id, "None")
     }
 
   }
@@ -76,71 +94,72 @@ class CatchMeRoutes (catchMeRegistry: ActorRef[CatchMeGameRegistry.Command])(imp
     }
   }
 
-  lazy val gameRoutes: Route = concat(
-    path("action") {
-      post {
-        entity(as[ActionRequest]) { actionRequest =>
-          onSuccess (agentAction(actionRequest.agentName, actionRequest.moveToId)) { performed =>
-            // Here you would call the method of the gameEnvironment and return some data
-            val gs = getGameState(performed)
-            complete(gs)
+  lazy val gameRoutes: Route = handleExceptions(myExceptionHandler) {
+    concat(
+      path("action") {
+        post {
+          entity(as[ActionRequest]) { actionRequest =>
+            onSuccess(agentAction(actionRequest.agentName, actionRequest.moveToId)) { performed =>
+              // Here you would call the method of the gameEnvironment and return some data
+              val gs = getGameState(performed)
+              complete(gs)
+            }
           }
         }
-      }
-    },
-    path("init") {
-      post {
-        authenticateOAuth2("secureSite",  myTokenAuthenticator) { envConfigRequest =>
-          if (envConfigRequest == "Authorised") {
-            entity(as[EnvConfigRequest]) { configRequest =>
-              onSuccess(initializeGame(configRequest.regionalGraphPath, configRequest.queryGraphPath)) { performed =>
-                // Here you would call the method of the gameEnvironment and return some data
-                val gs = getGameState(performed)
-                complete(gs)
-              }
+      },
+      path("init") {
+        post {
+          authenticateOAuth2("secureSite", myTokenAuthenticator) { envConfigRequest =>
+            if (envConfigRequest == "Authorised") {
+              entity(as[EnvConfigRequest]) { configRequest =>
+                onSuccess(initializeGame(configRequest.regionalGraphPath, configRequest.queryGraphPath)) { performed =>
+                  // Here you would call the method of the gameEnvironment and return some data
+                  val gs = getGameState(performed)
+                  complete(gs)
+                }
 
+              }
+            }
+            else {
+              complete("Not Authorised")
+            }
+          }
+        }
+      },
+      path("reset") {
+        authenticateOAuth2("secureSite", myTokenAuthenticator) { envConfigRequest =>
+          if (envConfigRequest == "Authorised") {
+            post {
+              entity(as[EnvConfigRequest]) { configRequest =>
+                onSuccess(resetParamsGame(configRequest.regionalGraphPath, configRequest.queryGraphPath)) { performed =>
+                  // Here you would call the method of the gameEnvironment and return some data
+                  val gs = getGameState(performed)
+                  complete(gs)
+                }
+              }
             }
           }
           else {
             complete("Not Authorised")
           }
         }
-      }
-    },
-    path("reset") {
-      authenticateOAuth2("secureSite", myTokenAuthenticator) { envConfigRequest =>
-        if (envConfigRequest == "Authorised") {
-          post {
-            entity(as[EnvConfigRequest]) { configRequest =>
-              onSuccess(resetParamsGame(configRequest.regionalGraphPath, configRequest.queryGraphPath)) { performed =>
-                // Here you would call the method of the gameEnvironment and return some data
-                val gs = getGameState(performed)
-                complete(gs)
-              }
+      },
+      path("querygraph") {
+        get {
+          onSuccess(getQueryGraph()) { queryGraphPath =>
+            complete(queryGraphPathResponse(queryGraphPath))
+          }
+        }
+      },
+      path("queryagent") {
+        post {
+          entity(as[AgentDataRequest]) { agentDataRequest =>
+            onSuccess(getAgentData(agentDataRequest.agentName)) { agentData =>
+              complete(agentData)
             }
           }
         }
-        else {
-          complete("Not Authorised")
-        }
-      }
-    },
-    path("querygraph") {
-      get {
-        onSuccess(getQueryGraph()) { queryGraphPath =>
-          complete(queryGraphPathResponse(queryGraphPath))
-        }
-      }
-    },
-    path("queryagent") {
-      post {
-        entity(as[AgentDataRequest]) { agentDataRequest =>
-          onSuccess(getAgentData(agentDataRequest.agentName)) { agentData =>
-            complete(agentData)
-          }
-        }
-      }
-    },
-  )
-
+      },
+    )
+  }
 }

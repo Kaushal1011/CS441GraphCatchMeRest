@@ -1,7 +1,7 @@
 package GraphCatchMeREST
 
 import GraphCatchMeREST.UserRegistry.ActionPerformed
-import CatchMeGame.{CatchMeGameEnvironment, AgentData, Winner,GameState, ComparableNode}
+import CatchMeGame.{CatchMeGameEnvironment, AgentData, Winner,GameState, ComparableNode, ConfidenceScore}
 //#json-formats
 import spray.json.RootJsonFormat
 import spray.json.DefaultJsonProtocol
@@ -19,7 +19,9 @@ object JsonFormats  {
 
   implicit val comparableNodeJsonFormat: RootJsonFormat[ComparableNode] = jsonFormat4(ComparableNode.apply)
 
-  implicit val agentDataJsonFormat: RootJsonFormat[AgentData] = jsonFormat3(AgentData.apply)
+  implicit val confidenceScoreJsonFormat: RootJsonFormat[ConfidenceScore] = jsonFormat2(ConfidenceScore.apply)
+
+  implicit val agentDataJsonFormat: RootJsonFormat[AgentData] = jsonFormat5(AgentData.apply)
 
   implicit val actionRequestJsonFormat: RootJsonFormat[ActionRequest] = jsonFormat2(ActionRequest.apply)
 
