@@ -13,7 +13,7 @@ lazy val root = (project in file(".")).
   settings(
     inThisBuild(List(
       organization    := "com.kaushal1011",
-      scalaVersion    := "2.13.12"
+      scalaVersion    := "2.13.8"
     )),
     name := "CS441GraphCatchMeREST",
     libraryDependencies ++= Seq(

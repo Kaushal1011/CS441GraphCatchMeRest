@@ -328,40 +328,40 @@ case class CatchMeGameEnvironment(
 }
 
 // Singleton object to run the game environment
-object CatchMeGameRunner {
-
-  def main(args: Array[String]): Unit = {
-    // Initialize the environment with some paths (you need to replace these with actual paths or test data)
-    val regionalGraphTestPath = "./input/edges.txt" // Replace with actual file path
-    val queryGraphTestPath = "./input/edgesPerturbed.txt" // Replace with actual file path
-
-    // Initializing the game environment with test paths
-    val environment = CatchMeGameEnvironment().init(regionalGraphTestPath, queryGraphTestPath)
-
-    // Print out the initial state
-    println(s"Initial Police Node: ${environment.currentPoliceNode}")
-    println(s"Initial Thief Node: ${environment.currentThiefNode}")
-    println(s"Game State: ${environment.gameState}")
-    println(s"Winner: ${environment.winner.getOrElse("No winner yet")}")
-
-    // Perform some actions to test functionality
-    // You need to replace 'moveToNeighbourId' with an actual ID based on your test data
-    val moveToNeighbourId = environment.getAgentData("police").adjacentNodes.head.id
-    val actionTestEnvironment = environment.action("police", moveToNeighbourId)
-
-    // Print out the state after action
-    println(s"After action Police Node: ${actionTestEnvironment.currentPoliceNode}")
-    println(s"After action Thief Node: ${actionTestEnvironment.currentThiefNode}")
-    println(s"After action Game State: ${actionTestEnvironment.gameState}")
-    println(s"After action Winner: ${actionTestEnvironment.winner.getOrElse("No winner yet")}")
-
-    // Reset the game environment and test paths
-    val resetEnvironment = actionTestEnvironment.reset(regionalGraphTestPath, queryGraphTestPath)
-
-    // Print out the state after reset
-    println(s"After reset Police Node: ${resetEnvironment.currentPoliceNode}")
-    println(s"After reset Thief Node: ${resetEnvironment.currentThiefNode}")
-    println(s"After reset Game State: ${resetEnvironment.gameState}")
-    println(s"After reset Winner: ${resetEnvironment.winner.getOrElse("No winner yet")}")
-  }
-}
+//object CatchMeGameRunner {
+//
+//  def main(args: Array[String]): Unit = {
+//    // Initialize the environment with some paths (you need to replace these with actual paths or test data)
+//    val regionalGraphTestPath = "./input/edges.txt" // Replace with actual file path
+//    val queryGraphTestPath = "./input/edgesPerturbed.txt" // Replace with actual file path
+//
+//    // Initializing the game environment with test paths
+//    val environment = CatchMeGameEnvironment().init(regionalGraphTestPath, queryGraphTestPath)
+//
+//    // Print out the initial state
+//    println(s"Initial Police Node: ${environment.currentPoliceNode}")
+//    println(s"Initial Thief Node: ${environment.currentThiefNode}")
+//    println(s"Game State: ${environment.gameState}")
+//    println(s"Winner: ${environment.winner.getOrElse("No winner yet")}")
+//
+//    // Perform some actions to test functionality
+//    // You need to replace 'moveToNeighbourId' with an actual ID based on your test data
+//    val moveToNeighbourId = environment.getAgentData("police").adjacentNodes.head.id
+//    val actionTestEnvironment = environment.action("police", moveToNeighbourId)
+//
+//    // Print out the state after action
+//    println(s"After action Police Node: ${actionTestEnvironment.currentPoliceNode}")
+//    println(s"After action Thief Node: ${actionTestEnvironment.currentThiefNode}")
+//    println(s"After action Game State: ${actionTestEnvironment.gameState}")
+//    println(s"After action Winner: ${actionTestEnvironment.winner.getOrElse("No winner yet")}")
+//
+//    // Reset the game environment and test paths
+//    val resetEnvironment = actionTestEnvironment.reset(regionalGraphTestPath, queryGraphTestPath)
+//
+//    // Print out the state after reset
+//    println(s"After reset Police Node: ${resetEnvironment.currentPoliceNode}")
+//    println(s"After reset Thief Node: ${resetEnvironment.currentThiefNode}")
+//    println(s"After reset Game State: ${resetEnvironment.gameState}")
+//    println(s"After reset Winner: ${resetEnvironment.winner.getOrElse("No winner yet")}")
+//  }
+//}
