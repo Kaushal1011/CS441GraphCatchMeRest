@@ -5,7 +5,7 @@
     <style>
         #graphContainer {
             width: 100%;
-            height: 600px;
+            height: 100%;
             border: 1px solid black;
         }
 
@@ -26,10 +26,24 @@
             stroke: #999;
             stroke-opacity: 0.6;
         }
+
+        .police {
+            fill: green;
+        }
+
+        .thief {
+            fill: black;
+        }
+
     </style>
 </head>
 <body>
 <input type="file" id="fileInput">
+<div>
+    <input type="text" id="policeNodeId" placeholder="Police Node ID">
+    <input type="text" id="thiefNodeId" placeholder="Thief Node ID">
+    <button id="updateColors">Update Node Colors</button>
+</div>
 <div id="graphContainer"></div>
 
 <script src="https://d3js.org/d3.v5.min.js"></script>
@@ -85,6 +99,24 @@ load
         return lines.map(line => parseEdgeData(line)).filter(edge => edge !== null);
     }
 
+    // Function to update or create the SVG element
+    function updateOrCreateSVG() {
+        const width = window.innerWidth; // 80% of window width
+        const height = window.innerHeight ; // 80% of window height
+
+        let svg = d3.select('#graphContainer').select('svg');
+        if (svg.empty()) {
+            // If SVG doesn't exist, create it
+            svg = d3.select('#graphContainer').append('svg');
+        }
+
+        // Set or update the width and height of the SVG
+        svg.attr('width', width)
+            .attr('height', height);
+
+        return svg;
+    }
+
     function visualizeGraph(edges) {
         const nodes = {};
         edges.forEach(edge => {
@@ -96,10 +128,10 @@ load
             }
         });
 
-        const width = 960, height = 600;
-        const svg = d3.select('#graphContainer').append('svg')
-            .attr('width', width)
-            .attr('height', height);
+        const width = window.innerWidth ; // 80% of window width
+        const height = window.innerHeight ; // 80% of window height
+
+        const svg = updateOrCreateSVG();
 
         const simulation = d3.forceSimulation()
             .force("link", d3.forceLink().id(d => d.id))
@@ -149,6 +181,30 @@ load
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y);
         }
+
+        document.getElementById('updateColors').addEventListener('click', function() {
+            const policeId = parseInt(document.getElementById('policeNodeId').value);
+            const thiefId = parseInt(document.getElementById('thiefNodeId').value);
+
+            d3.selectAll('circle')
+                .attr('class', function(d) {
+                    if (d.id === policeId) {
+                        return 'node police';
+                    } else if (d.id === thiefId) {
+                        return 'node thief';
+                    } else {
+                        return d.valuable ? 'node valuable' : 'node normal';
+                    }
+                }).attr(
+                    'r', function(d) {
+                        if (d.id === policeId || d.id === thiefId) {
+                            return 7;
+                        } else {
+                            return 5;
+                        }
+                    }
+            );
+        });
 
         function dragstarted(d) {
             if (!d3.event.active) simulation.alphaTarget(0.3).restart();

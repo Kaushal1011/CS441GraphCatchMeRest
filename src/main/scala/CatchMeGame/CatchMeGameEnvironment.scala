@@ -103,41 +103,45 @@ case class CatchMeGameEnvironment(
     // Tail-recursive BFS implementation
     @tailrec
     def bfs(frontier: List[(ComparableNode, Int)], visited: Set[Int]): Option[Int] = {
-      println(s"Current frontier: ${frontier.map(_._1.id)}") // Debug: Print the current frontier
+//      println(s"Current frontier: ${frontier.map(_._1.id)}") // Debug: Print the current frontier
       frontier match {
         case (node, dist) :: rest =>
-          println(s"Visiting node: ${node.id}") // Debug: Print the current node being visited
+//          println(s"Visiting node: ${node.id}") // Debug: Print the current node being visited
           if (node.valuableFlag) {
-            println(s"Found valuable node at distance $dist") // Debug: Print when a valuable node is found
+//            println(s"Found valuable node at distance $dist") // Debug: Print when a valuable node is found
             Some(dist)
           } else {
             val neighbors = graph.adjacentNodes(node).iterator().asScala
               .filterNot(n => visited.contains(n.id))
               .toList.map(n => (n, dist + 1))
-            println(s"Neighbors to be added: ${neighbors.map(_._1.id)}") // Debug: Print the neighbors to be added
+//            println(s"Neighbors to be added: ${neighbors.map(_._1.id)}") // Debug: Print the neighbors to be added
             bfs(rest ++ neighbors, visited + node.id)
           }
         case Nil =>
-          println("No more nodes in frontier, terminating BFS") // Debug: Print when the frontier is empty
+//          println("No more nodes in frontier, terminating BFS") // Debug: Print when the frontier is empty
           None
       }
     }
 
     findNode(graph, startId) match {
       case Some(startNode) =>
-        println(s"Starting BFS from node: ${startNode.id}") // Debug: Print the start node for BFS
+//        println(s"Starting BFS from node: ${startNode.id}") // Debug: Print the start node for BFS
         bfs(List((startNode, 0)), Set(startId))
       case None =>
-        println(s"No node found with ID $startId") // Debug: Print if the start node is not found
+//        println(s"No node found with ID $startId") // Debug: Print if the start node is not found
         None
     }
   }
   private def getConfidenceScore(agentName: String): List[ConfidenceScore] = {
     val environment = this
     val neighbours = if (agentName == "police") {
-      environment.queryGraph.adjacentNodes(environment.currentPoliceNode).asScala.toList
+      val currentNodeId = environment.currentPoliceNode.id
+      val matchingNode = environment.queryGraph.nodes().asScala.find(node => node.id == currentNodeId).getOrElse(ComparableNode(-1, List.empty, List.empty))
+      environment.queryGraph.adjacentNodes(matchingNode).asScala.toList
     } else if (agentName == "thief") {
-      environment.queryGraph.adjacentNodes(environment.currentThiefNode).asScala.toList
+      val currentNodeId = environment.currentThiefNode.id
+      val matchingNode = environment.queryGraph.nodes().asScala.find(node => node.id == currentNodeId).getOrElse(ComparableNode(-1, List.empty, List.empty))
+      environment.queryGraph.adjacentNodes(matchingNode).asScala.toList
     } else {
       println("Invalid agent name")
       List.empty
@@ -188,10 +192,15 @@ case class CatchMeGameEnvironment(
   def getAgentData(agentName:String): AgentData = {
     val environment = this
     if (agentName=="police"){
-      val neighbours = environment.queryGraph.adjacentNodes(environment.currentPoliceNode).asScala.toList
+      val currentNodeId = environment.currentPoliceNode.id
+      val matchingNode = environment.queryGraph.nodes().asScala.find(node => node.id == currentNodeId).getOrElse(ComparableNode(-1, List.empty, List.empty))
+      val neighbours = environment.queryGraph.adjacentNodes(matchingNode).asScala.toList
+
       AgentData(agentName, environment.currentPoliceNode, neighbours, getConfidenceScore(agentName), findDistanceToValuableData(environment.regionalGraph, environment.currentPoliceNode.id).getOrElse(-1))
     } else if(agentName=="thief"){
-      val neighbours = environment.queryGraph.adjacentNodes(environment.currentThiefNode).asScala.toList
+      val currentNodeId = environment.currentThiefNode.id
+      val matchingNode = environment.queryGraph.nodes().asScala.find(node => node.id == currentNodeId).getOrElse(ComparableNode(-1, List.empty, List.empty))
+      val neighbours = environment.queryGraph.adjacentNodes(matchingNode).asScala.toList
       AgentData(agentName, environment.currentThiefNode, neighbours, getConfidenceScore(agentName), findDistanceToValuableData(environment.regionalGraph, environment.currentThiefNode.id).getOrElse(-1))
     }else{
       println("Invalid agent name")
