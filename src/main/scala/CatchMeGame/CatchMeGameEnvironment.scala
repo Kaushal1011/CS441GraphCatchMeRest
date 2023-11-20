@@ -277,7 +277,8 @@ case class CatchMeGameEnvironment(
 
     loadedEnvironment.copy(
       currentPoliceNode = randomPoliceNode,
-      currentThiefNode = randomThiefNode
+      currentThiefNode = randomThiefNode,
+      winner = Some(Winner.NoOne)
     )
   }
 
@@ -298,7 +299,8 @@ case class CatchMeGameEnvironment(
 
     resetEnvironment.copy(
       currentPoliceNode = randomPoliceNode,
-      currentThiefNode = randomThiefNode
+      currentThiefNode = randomThiefNode,
+      winner = Some(Winner.NoOne)
     )
   }
 
@@ -318,7 +320,8 @@ case class CatchMeGameEnvironment(
 
     resetEnvironment.copy(
       currentPoliceNode = randomPoliceNode,
-      currentThiefNode = randomThiefNode
+      currentThiefNode = randomThiefNode,
+      winner = Some(Winner.NoOne)
     )
   }
 
