@@ -1,19 +1,15 @@
 package GraphCatchMeREST
 
-import GraphCatchMeREST.UserRegistry.ActionPerformed
-import CatchMeGame.{CatchMeGameEnvironment, AgentData, Winner,GameState, ComparableNode, ConfidenceScore}
+import CatchMeGame.{AgentData,GameState, ComparableNode, ConfidenceScore}
 //#json-formats
 import spray.json.RootJsonFormat
 import spray.json.DefaultJsonProtocol
 
+// serializing and deserializing case classes
+// will convert to and from JSON
 object JsonFormats  {
   // import the default encoders for primitive types (Int, String, Lists etc)
   import DefaultJsonProtocol._
-
-  implicit val userJsonFormat: RootJsonFormat[User] = jsonFormat3(User.apply)
-  implicit val usersJsonFormat: RootJsonFormat[Users] = jsonFormat1(Users.apply)
-
-  implicit val actionPerformedJsonFormat: RootJsonFormat[ActionPerformed]  = jsonFormat1(ActionPerformed.apply)
 
   implicit val gameStateJsonFormat: RootJsonFormat[GameState] = jsonFormat3(GameState.apply)
 

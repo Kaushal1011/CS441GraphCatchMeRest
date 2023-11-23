@@ -7,6 +7,7 @@ import scala.collection.immutable
 import CatchMeGame.{CatchMeGameEnvironment, AgentData, Winner,ComparableNode}
 
 
+// registry actor as created by refering to the akka http boilerplate
 object CatchMeGameRegistry {
 
   final case class getAgentData(agentName: String ,replyTo: ActorRef[AgentData]) extends Command

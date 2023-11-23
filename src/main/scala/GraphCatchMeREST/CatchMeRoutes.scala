@@ -5,7 +5,6 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 
 import scala.concurrent.Future
-import GraphCatchMeREST.UserRegistry._
 import akka.actor.typed.ActorRef
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern._
@@ -13,7 +12,7 @@ import akka.util.Timeout
 import CatchMeGame.{AgentData, CatchMeGameEnvironment, ComparableNode, GameState, Winner}
 import akka.http.scaladsl.server.directives.Credentials
 
-
+// case classes to handle request response data
 case class ActionRequest(agentName: String, moveToId: Int)
 case class EnvConfigRequest(regionalGraphPath: String, queryGraphPath: String)
 case class AgentDataRequest(agentName: String)
@@ -24,20 +23,13 @@ import akka.http.scaladsl.server._
 import Directives._
 import akka.http.scaladsl.server.ExceptionHandler
 
-
-
-
+// routes class as created by refering to the akka http boilerplate
 class CatchMeRoutes (catchMeRegistry: ActorRef[CatchMeGameRegistry.Command])(implicit val system: ActorSystem[_]) {
 
   implicit val myExceptionHandler: ExceptionHandler = ExceptionHandler {
-    case ex: ArithmeticException =>
-      extractUri { uri =>
-        println(s"Request to $uri could not be handled normally")
-        complete(HttpResponse(StatusCodes.InternalServerError, entity = "Bad numbers, bad result!!!"))
-      }
     case ex: Exception =>
       extractUri { uri =>
-        println(s"Request to $uri could not be handled normally")
+        system.log.error(s"Request to $uri could not be handled normally")
         complete(HttpResponse(StatusCodes.InternalServerError, entity = "An error occurred: " + ex.getMessage))
       }
   }
@@ -48,26 +40,43 @@ class CatchMeRoutes (catchMeRegistry: ActorRef[CatchMeGameRegistry.Command])(imp
   // If ask takes more time than this to complete the request is failed
   private implicit val timeout: Timeout = Timeout.create(system.settings.config.getDuration("my-app.routes.ask-timeout"))
 
+  // all the functions that will be called by the routes
+  // they call the actor and return the result
+  // ask replyTo pattern
   def getAgentData(agentName: String): Future[AgentData] = {
+     system.log.info("getAgentData: " + agentName)
      catchMeRegistry.ask(CatchMeGameRegistry.getAgentData(agentName, _))
-
   }
 
   def agentAction(agentName: String,moveToId:Int): Future[CatchMeGameEnvironment] = {
+    system.log.info("agentAction: " + agentName + " moveToId: " + moveToId)
     catchMeRegistry.ask(CatchMeGameRegistry.agentAction(agentName, moveToId, _))
   }
 
-  def initializeGame(regionalGraphPath:String, queryGraphPath:String): Future[CatchMeGameEnvironment] =
+  def initializeGame(regionalGraphPath:String, queryGraphPath:String): Future[CatchMeGameEnvironment] = {
+    system.log.info("initializeGame: " + regionalGraphPath + " queryGraphPath: " + queryGraphPath)
     catchMeRegistry.ask(CatchMeGameRegistry.initializeGame(regionalGraphPath, queryGraphPath, _))
-  def resetGame(): Future[CatchMeGameEnvironment] =
+  }
+
+  def resetGame(): Future[CatchMeGameEnvironment] = {
+    system.log.info("resetGame")
     catchMeRegistry.ask(CatchMeGameRegistry.resetGame(_))
-  def resetParamsGame(regionalGraphPath:String, queryGraphPath:String): Future[CatchMeGameEnvironment] =
+  }
+
+  def resetParamsGame(regionalGraphPath:String, queryGraphPath:String): Future[CatchMeGameEnvironment] = {
+    system.log.info("resetParamsGame: " + regionalGraphPath + " queryGraphPath: " + queryGraphPath)
     catchMeRegistry.ask(CatchMeGameRegistry.resetParamsGame(regionalGraphPath, queryGraphPath, _))
-  def getQueryGraph(): Future[String] =
+  }
+
+  def getQueryGraph(): Future[String] = {
+    system.log.info("getQueryGraph")
     catchMeRegistry.ask(CatchMeGameRegistry.getQueryGraph(_))
+  }
 
 
   private def getGameState(env: CatchMeGameEnvironment): GameState = {
+
+    system.log.info("getGameState")
 
     if (env.winner.getOrElse(Winner.NoOne) == Winner.Police) {
       GameState(env.currentPoliceNode.asInstanceOf[ComparableNode].id, env.currentThiefNode.asInstanceOf[ComparableNode].id, "Police")
@@ -83,10 +92,11 @@ class CatchMeRoutes (catchMeRegistry: ActorRef[CatchMeGameRegistry.Command])(imp
 
 
 
-//  val secretToken = "ifilosemyselftonightiwillblamescala"
+  //  val secretToken = "ifilosemyselftonightiwillblamescala"
   // load this from config
-  val secretToken = "ifilosemyselftonightiwillblamescala"
+  val secretToken = system.settings.config.getString("my-app.server.secret-key")
 
+  // token authentication for init and reset
   def myTokenAuthenticator(credentials: Credentials): Option[String] = {
     credentials match {
       case Credentials.Provided(token) if token == secretToken => Some("Authorised")
@@ -94,6 +104,7 @@ class CatchMeRoutes (catchMeRegistry: ActorRef[CatchMeGameRegistry.Command])(imp
     }
   }
 
+  // the routes
   lazy val gameRoutes: Route = handleExceptions(myExceptionHandler) {
     concat(
       path("action") {

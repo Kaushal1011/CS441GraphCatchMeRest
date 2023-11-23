@@ -7,17 +7,24 @@ import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
 import scala.io.Source
 import scala.util.Using
+
+import akka.actor.typed.ActorSystem
+import akka.actor.typed.scaladsl.Behaviors
+
+
 // Enumeration for the game state
 object GameState extends Enumeration {
   val Start, Ongoing, Finished = Value
 }
 
+// Enumeration for the winner
 object Winner extends Enumeration {
   val Police, Thief, NoOne = Value
 }
 
 import scala.util.Random
 
+// Case classes for the game environment and game running
 case class ComparableNode(
                            id: Int = -1,
                            props: List[Int] = List.empty,
@@ -53,7 +60,14 @@ case class CatchMeGameEnvironment(
                         winner: Option[Winner.Value] = None
                       ) {
 
+  // Actor system context for logging and fetching config
+  implicit val system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "CatchMeGameEnvironment")
+
+
   // Methods
+
+  // A helper method to load a graph from a file
+  // can load from file, can load from url
   private def loadGraph(graphPath: String): MutableGraph[ComparableNode] = {
     val graph = GraphBuilder.undirected().build[ComparableNode]()
     val nodeMap = scala.collection.mutable.Map[Int, ComparableNode]()
@@ -81,6 +95,7 @@ case class CatchMeGameEnvironment(
     }
   }
 
+  // A helper method to load the regional graph
   private def loadRegionalGraph(graphPath:String): CatchMeGameEnvironment = {
     this.copy(
       regionalGraphPath = Some(graphPath),
@@ -88,6 +103,7 @@ case class CatchMeGameEnvironment(
     )
   }
 
+  // A helper method to load the query graph
   private def loadQueryGraph(nodesPath: String): CatchMeGameEnvironment = {
     this.copy(
       queryGraphPath = Some(nodesPath),
@@ -95,6 +111,7 @@ case class CatchMeGameEnvironment(
     )
   }
 
+  // A helper method to find the distance to the nearest valuable data
   private def findDistanceToValuableData(graph: MutableGraph[ComparableNode], startId: Int): Option[Int] = {
     // A helper method to find a node by id
     def findNode(graph: MutableGraph[ComparableNode], nodeId: Int): Option[ComparableNode] =
@@ -132,6 +149,8 @@ case class CatchMeGameEnvironment(
         None
     }
   }
+
+  // A helper method to find the confidence score for each neighbour
   private def getConfidenceScore(agentName: String): List[ConfidenceScore] = {
     val environment = this
     val neighbours = if (agentName == "police") {
@@ -143,7 +162,7 @@ case class CatchMeGameEnvironment(
       val matchingNode = environment.queryGraph.nodes().asScala.find(node => node.id == currentNodeId).getOrElse(ComparableNode(-1, List.empty, List.empty))
       environment.queryGraph.adjacentNodes(matchingNode).asScala.toList
     } else {
-      println("Invalid agent name")
+      system.log.error("Invalid agent name")
       List.empty
     }
     val queryGraphEdgeSize = environment.queryGraph.edges().size()
@@ -163,6 +182,7 @@ case class CatchMeGameEnvironment(
   }
 
 
+  // A helper method to check if the game is over
   private def checkGameOverWinner(): Winner.Value = {
     // Implement the logic to check if the game is over
     // Return true if the game is over, false otherwise
@@ -189,99 +209,152 @@ case class CatchMeGameEnvironment(
 
   }
 
+  // A helper method to get the agent data
   def getAgentData(agentName:String): AgentData = {
-    val environment = this
-    if (agentName=="police"){
-      val currentNodeId = environment.currentPoliceNode.id
-      val matchingNode = environment.queryGraph.nodes().asScala.find(node => node.id == currentNodeId).getOrElse(ComparableNode(-1, List.empty, List.empty))
-      val neighbours = environment.queryGraph.adjacentNodes(matchingNode).asScala.toList
+    try {
+      val environment = this
+      if (agentName == "police") {
+        val currentNodeId = environment.currentPoliceNode.id
+        val matchingNode = environment.queryGraph.nodes().asScala.find(node => node.id == currentNodeId).getOrElse(ComparableNode(-1, List.empty, List.empty))
+        val neighbours = environment.queryGraph.adjacentNodes(matchingNode).asScala.toList
 
-      AgentData(agentName, environment.currentPoliceNode, neighbours, getConfidenceScore(agentName), findDistanceToValuableData(environment.regionalGraph, environment.currentPoliceNode.id).getOrElse(-1))
-    } else if(agentName=="thief"){
-      val currentNodeId = environment.currentThiefNode.id
-      val matchingNode = environment.queryGraph.nodes().asScala.find(node => node.id == currentNodeId).getOrElse(ComparableNode(-1, List.empty, List.empty))
-      val neighbours = environment.queryGraph.adjacentNodes(matchingNode).asScala.toList
-      AgentData(agentName, environment.currentThiefNode, neighbours, getConfidenceScore(agentName), findDistanceToValuableData(environment.regionalGraph, environment.currentThiefNode.id).getOrElse(-1))
-    }else{
-      println("Invalid agent name")
-      AgentData("null", ComparableNode(-1, List.empty, List.empty, false), List.empty, List.empty,0)
+        AgentData(agentName, environment.currentPoliceNode, neighbours, getConfidenceScore(agentName), findDistanceToValuableData(environment.regionalGraph, environment.currentPoliceNode.id).getOrElse(-1))
+      } else if (agentName == "thief") {
+        val currentNodeId = environment.currentThiefNode.id
+        val matchingNode = environment.queryGraph.nodes().asScala.find(node => node.id == currentNodeId).getOrElse(ComparableNode(-1, List.empty, List.empty))
+        val neighbours = environment.queryGraph.adjacentNodes(matchingNode).asScala.toList
+        AgentData(agentName, environment.currentThiefNode, neighbours, getConfidenceScore(agentName), findDistanceToValuableData(environment.regionalGraph, environment.currentThiefNode.id).getOrElse(-1))
+      } else {
+        system.log.error("Invalid agent name")
+        AgentData("null", ComparableNode(-1, List.empty, List.empty, false), List.empty, List.empty, 0)
+      }
+    }
+    catch {
+      case e: Exception => {
+        system.log.error("Error getting agent data");
+        AgentData("null", ComparableNode(-1, List.empty, List.empty, false), List.empty, List.empty, 0)
+      }
     }
   }
 
+  // do an action on the environment
   def action(agentName: String, moveToNeighbourId: Int): CatchMeGameEnvironment = {
-    // Implement the logic to move the agent (police or thief) to the given neighbour node
-    // Update the currentPoliceNode or currentThiefNode accordingly
-    // Return a new Environment with the updated node
-    val environment = this
+    try {
+      // Implement the logic to move the agent (police or thief) to the given neighbour node
+      // Update the currentPoliceNode or currentThiefNode accordingly
+      // Return a new Environment with the updated node
+      val environment = this
 
-    if (agentName=="police"){
+      if (agentName == "police") {
 
-      // check if moveToNeighbourId is a neighbour of currentPoliceNode
-      val neighbours = environment.regionalGraph.adjacentNodes(environment.currentPoliceNode).asScala.toList
-      val moveToNeighbour:ComparableNode = neighbours.find(node => node.id == moveToNeighbourId).getOrElse(ComparableNode(-1, List.empty, List.empty, false))
-      if (moveToNeighbour.id != -1){
-        val winner = environment.checkGameOverWinner()
-        if (winner != Winner.NoOne) {
-          environment.copy(currentPoliceNode = moveToNeighbour, gameState = GameState.Finished, winner = Some(winner))
+        // check if moveToNeighbourId is a neighbour of currentPoliceNode
+        val neighbours = environment.regionalGraph.adjacentNodes(environment.currentPoliceNode).asScala.toList
+        val moveToNeighbour: ComparableNode = neighbours.find(node => node.id == moveToNeighbourId).getOrElse(ComparableNode(-1, List.empty, List.empty, false))
+        if (moveToNeighbour.id != -1) {
+          val winner = environment.checkGameOverWinner()
+          if (winner != Winner.NoOne) {
+            environment.copy(currentPoliceNode = moveToNeighbour, gameState = GameState.Finished, winner = Some(winner))
+          } else {
+            environment.copy(currentPoliceNode = moveToNeighbour)
+          }
+
         } else {
-          environment.copy(currentPoliceNode = moveToNeighbour)
+          // invalid neighbour provided for agent
+          // if loss flag is set then agent loses
+          // else no op
+
+          system.log.error("Invalid neighbour id provided police")
+
+          val invalidMakesLoss = system.settings.config.getString("my-app.server.invalid-makes-loss")
+
+          if (invalidMakesLoss == "true") {
+            environment.copy(gameState = GameState.Finished, winner = Some(Winner.Thief))
+          } else {
+            environment
+          }
+        }
+
+
+      } else if (agentName == "thief") {
+
+        // check if moveToNeighbourId is a neighbour of currentThiefNode
+        val neighbours = environment.regionalGraph.adjacentNodes(environment.currentThiefNode).asScala.toList
+        val moveToNeighbour = neighbours.find(node => node.id == moveToNeighbourId.toInt).getOrElse(ComparableNode(-1, List.empty, List.empty, false))
+        if (moveToNeighbour.id != -1) {
+          val winner = environment.checkGameOverWinner()
+          if (winner != Winner.NoOne) {
+            environment.copy(currentThiefNode = moveToNeighbour, gameState = GameState.Finished, winner = Some(winner))
+          } else {
+            environment.copy(currentThiefNode = moveToNeighbour)
+          }
+        } else {
+          // invalid neighbour provided for agent
+          // if loss flag is set then agent loses
+          // else no op
+
+          system.log.error("Invalid neighbour id provided thief")
+
+          val invalidMakesLoss = system.settings.config.getString("my-app.server.invalid-makes-loss")
+
+          if (invalidMakesLoss == "true") {
+            environment.copy(gameState = GameState.Finished, winner = Some(Winner.Police))
+          } else {
+            environment
+          }
         }
 
       } else {
-        println("Invalid neighbour id provided police")
+        system.log.error("Invalid agent name")
         environment
+
       }
-
-
-    }else if(agentName=="thief"){
-
-      // check if moveToNeighbourId is a neighbour of currentThiefNode
-      val neighbours = environment.regionalGraph.adjacentNodes(environment.currentThiefNode).asScala.toList
-      val moveToNeighbour = neighbours.find(node => node.id == moveToNeighbourId.toInt).getOrElse(ComparableNode(-1, List.empty, List.empty, false))
-      if (moveToNeighbour.id != -1) {
-        val winner = environment.checkGameOverWinner()
-        if (winner != Winner.NoOne) {
-          environment.copy(currentThiefNode = moveToNeighbour, gameState = GameState.Finished, winner = Some(winner))
-        } else {
-          environment.copy(currentThiefNode = moveToNeighbour)
-        }
-      } else {
-        println("Invalid neighbour id provided thief")
-        environment
+    }
+    catch {
+      case e: Exception => {
+        system.log.error("Error doing action graph");
+        this
       }
-
-    }else{
-      println("Invalid agent name")
-      environment
-
     }
 
   }
 
+  // init function take a regional graph and query graph and initialize the environment
   def init(regionalGraphPath: String, queryGraphPath: String): CatchMeGameEnvironment = {
-    val loadedEnvironment = loadRegionalGraph(regionalGraphPath)
-      .loadQueryGraph(queryGraphPath)
-      .copy(gameState = GameState.Ongoing)
+    try {
 
-    // Assuming that the regional graph is where the game takes place
-    val regionalNodes = loadedEnvironment.regionalGraph.nodes()
-    val allNodes = regionalNodes.asScala.toList
-    val allNodesQuery = loadedEnvironment.queryGraph.nodes().asScala.toList
 
-    val intersectionRegionalQuery = allNodes.intersect(allNodesQuery)
+      val loadedEnvironment = loadRegionalGraph(regionalGraphPath)
+        .loadQueryGraph(queryGraphPath)
+        .copy(gameState = GameState.Ongoing)
 
-    // Picking random nodes for police and thief
-    val random = new Random()
-    val randomPoliceNode = intersectionRegionalQuery(random.nextInt(intersectionRegionalQuery.size))
-    val randomThiefNode = intersectionRegionalQuery(random.nextInt(intersectionRegionalQuery.size))
+      // Assuming that the regional graph is where the game takes place
+      val regionalNodes = loadedEnvironment.regionalGraph.nodes()
+      val allNodes = regionalNodes.asScala.toList
+      val allNodesQuery = loadedEnvironment.queryGraph.nodes().asScala.toList
 
-    loadedEnvironment.copy(
-      currentPoliceNode = randomPoliceNode,
-      currentThiefNode = randomThiefNode,
-      winner = Some(Winner.NoOne)
-    )
+      val intersectionRegionalQuery = allNodes.intersect(allNodesQuery)
+
+      // Picking random nodes for police and thief
+      val random = new Random()
+      val randomPoliceNode = intersectionRegionalQuery(random.nextInt(intersectionRegionalQuery.size))
+      val randomThiefNode = intersectionRegionalQuery(random.nextInt(intersectionRegionalQuery.size))
+
+      loadedEnvironment.copy(
+        currentPoliceNode = randomPoliceNode,
+        currentThiefNode = randomThiefNode,
+        winner = Some(Winner.NoOne)
+      )
+    }
+    catch {
+      case e: Exception => {
+        system.log.error("Error loading graph");
+        this
+      }
+    }
+
   }
 
+  // reset function resets the environment on the same graphs
   def reset(): CatchMeGameEnvironment = {
     // Reset the game state and graphs
     val resetEnvironment = this.copy(
@@ -304,25 +377,34 @@ case class CatchMeGameEnvironment(
     )
   }
 
+  // reset function resets the environment on the new provided graphs
   def reset(regionalGraphPath: String, queryGraphPath: String): CatchMeGameEnvironment = {
-    val resetEnvironment = loadRegionalGraph(regionalGraphPath)
-      .loadQueryGraph(queryGraphPath)
-      .copy(gameState = GameState.Ongoing)
+    try {
+      val resetEnvironment = loadRegionalGraph(regionalGraphPath)
+        .loadQueryGraph(queryGraphPath)
+        .copy(gameState = GameState.Ongoing)
 
-    // Assuming we want to pick new random locations after reset
-    val regionalNodes = resetEnvironment.regionalGraph.nodes().asInstanceOf[java.util.Set[ComparableNode]]
-    val allNodes = regionalNodes.asScala.toList
+      // Assuming we want to pick new random locations after reset
+      val regionalNodes = resetEnvironment.regionalGraph.nodes().asInstanceOf[java.util.Set[ComparableNode]]
+      val allNodes = regionalNodes.asScala.toList
 
-    // Picking random nodes for police and thief
-    val random = new Random()
-    val randomPoliceNode = allNodes(random.nextInt(allNodes.size))
-    val randomThiefNode = allNodes(random.nextInt(allNodes.size))
+      // Picking random nodes for police and thief
+      val random = new Random()
+      val randomPoliceNode = allNodes(random.nextInt(allNodes.size))
+      val randomThiefNode = allNodes(random.nextInt(allNodes.size))
 
-    resetEnvironment.copy(
-      currentPoliceNode = randomPoliceNode,
-      currentThiefNode = randomThiefNode,
-      winner = Some(Winner.NoOne)
-    )
+      resetEnvironment.copy(
+        currentPoliceNode = randomPoliceNode,
+        currentThiefNode = randomThiefNode,
+        winner = Some(Winner.NoOne)
+      )
+    }
+    catch {
+      case e: Exception => {
+        system.log.error("Error loading graph");
+        this
+      }
+    }
   }
 
 }
