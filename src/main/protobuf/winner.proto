@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package winner;
+
+// The request message containing the winner.
+message WinnerRequest {
+  string winner = 1; // could be "police", "thief", or "none"
+}
+
+// The response message containing the win counts.
+message WinnerResponse {
+  int32 police = 1;
+  int32 thief = 2;
+  int32 tie = 3;
+}

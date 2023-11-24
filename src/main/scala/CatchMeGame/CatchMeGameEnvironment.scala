@@ -1,8 +1,8 @@
 package CatchMeGame
 
 import com.google.common.graph.{GraphBuilder, MutableGraph}
-import helpers.NodeDataParser
-
+import helpers.{NodeDataParser,LambdaInvoker}
+import akka.actor.ClassicActorSystemProvider
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
 import scala.io.Source
@@ -10,7 +10,8 @@ import scala.util.Using
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
-
+import scala.concurrent.ExecutionContext
+import scala.util.{Success, Failure}
 
 // Enumeration for the game state
 object GameState extends Enumeration {
@@ -62,6 +63,21 @@ case class CatchMeGameEnvironment(
 
   // Actor system context for logging and fetching config
   implicit val system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "CatchMeGameEnvironment")
+  implicit val ec: ExecutionContext = system.executionContext
+  implicit val url: String = system.settings.config.getString("my-app.lambdas.url")
+
+  private val lambdaInvokerForWinReport = new LambdaInvoker()
+
+  private def reportToLambda(agentName: String): Unit = {
+    val res = lambdaInvokerForWinReport.invokeLambdaAndGetResponse(agentName)
+
+    res.onComplete{
+      case Success(response) =>
+        system.log.info(s"Response from lambda: $response")
+      case Failure(exception) =>
+        system.log.error(s"Error invoking lambda: ${exception.getMessage}")
+    }
+  }
 
 
   // Methods
@@ -191,16 +207,26 @@ case class CatchMeGameEnvironment(
     val environment = this
 
     if (environment.currentPoliceNode.id == environment.currentThiefNode.id){
+
+      // call lambda with protobuf
+      reportToLambda("police")
+
       Winner.Police
     }
     // if thief is on a node with valuable data
     else if (environment.currentThiefNode.valuableFlag){
+      // call lambda with protobuf
+      reportToLambda("thief")
       Winner.Thief
     }
     else if (environment.regionalGraph.adjacentNodes(environment.currentThiefNode).isEmpty){
+      // call lambda with protobuf
+       reportToLambda("police")
        Winner.Police
     }
     else if (environment.regionalGraph.adjacentNodes(environment.currentPoliceNode).isEmpty){
+      // call lambda with protobuf
+       reportToLambda("thief")
        Winner.Thief
     }
     else{
@@ -339,6 +365,14 @@ case class CatchMeGameEnvironment(
       val randomPoliceNode = intersectionRegionalQuery(random.nextInt(intersectionRegionalQuery.size))
       val randomThiefNode = intersectionRegionalQuery(random.nextInt(intersectionRegionalQuery.size))
 
+      // if previous values are set and then init is called again
+      // call lambda with protobuf
+//      if (this.currentPoliceNode.id != -1 && this.currentThiefNode.id != -1) {
+//        // report previous game as tie
+//        reportToLambda("tie")
+//      }
+
+
       loadedEnvironment.copy(
         currentPoliceNode = randomPoliceNode,
         currentThiefNode = randomThiefNode,
@@ -370,6 +404,12 @@ case class CatchMeGameEnvironment(
     val randomPoliceNode = allNodes(random.nextInt(allNodes.size))
     val randomThiefNode = allNodes(random.nextInt(allNodes.size))
 
+    if (this.currentPoliceNode.id != -1 && this.currentThiefNode.id != -1) {
+        // report previous game as tie
+        reportToLambda("tie")
+
+    }
+
     resetEnvironment.copy(
       currentPoliceNode = randomPoliceNode,
       currentThiefNode = randomThiefNode,
@@ -392,6 +432,12 @@ case class CatchMeGameEnvironment(
       val random = new Random()
       val randomPoliceNode = allNodes(random.nextInt(allNodes.size))
       val randomThiefNode = allNodes(random.nextInt(allNodes.size))
+
+      if (this.currentPoliceNode.id != -1 && this.currentThiefNode.id != -1) {
+        // report previous game as tie
+        reportToLambda("tie")
+
+      }
 
       resetEnvironment.copy(
         currentPoliceNode = randomPoliceNode,
