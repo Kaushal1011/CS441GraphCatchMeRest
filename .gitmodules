@@ -1,0 +1,12 @@
+[submodule "CS441CatchMeClient"]
+	path = CS441CatchMeClient
+	url = https://github.com/Kaushal1011/CS441CatchMeClient.git
+[submodule "CS441LambdaStoreS3"]
+	path = CS441LambdaStoreS3
+	url = https://github.com/Kaushal1011/CS441LambdaStoreS3.git
+[submodule "chorpoliceviz"]
+	path = chorpoliceviz
+	url = https://github.com/Kaushal1011/chorpoliceviz.git
+[submodule "CS441-PreprocessorForNGSSimRank"]
+	path = CS441-PreprocessorForNGSSimRank
+	url = https://github.com/Kaushal1011/CS441-PreprocessorForNGSSimRank.git

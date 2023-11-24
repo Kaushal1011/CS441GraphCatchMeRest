@@ -1,30 +1,25 @@
-# Sample Akka HTTP server
+# CS 441 Catch Me Game ReadMe
 
-This is a sample Akka HTTP endpoint keeping an in-memory database of users that can be created and listed.
+
+
+##  CS 441 Catch Me Game (Rest API )
+
+
 
 Sources in the sample:
 
+### Graph Catch Me Rest Package
+
 * `QuickstartApp.scala` -- contains the main method which bootstraps the application
-* `UserRoutes.scala` -- Akka HTTP `routes` defining exposed endpoints
-* `UserRegistry.scala` -- the actor which handles the registration requests
+* `CatchMeRoutes.scala` -- Akka HTTP `routes` defining exposed endpoints
+* `CatchMeGameRegistry.scala` -- the actor which handles the requests and keeps the in-memory database
 * `JsonFormats.scala` -- converts the JSON data from requests into Scala types and from Scala types into JSON responses
 
-## Interacting with the sample
+### Graph Catch Me Game Package
 
-After starting the sample with `sbt run` the following requests can be made:
+* `CatchMeGameEnvironment.scala` -- contains the methods for the environment of the game as inspired from gym environments
 
-List all users:
+### Helpers Package
 
-    curl http://localhost:8080/users
-
-Create a user:
-
-    curl -XPOST http://localhost:8080/users -d '{"name": "Liselott", "age": 32, "countryOfResidence": "Norway"}' -H "Content-Type:application/json"
-
-Get the details of one user:
-
-    curl http://localhost:8080/users/Liselott
-
-Delete a user:
-
-    curl -XDELETE http://localhost:8080/users/Liselott
+* `NodeDataParser.scala` -- contains the methods for parsing the data from the nodes
+* `LamdaInvoker.scala` -- contains the methods for invoking the lambda functions using protobuf
