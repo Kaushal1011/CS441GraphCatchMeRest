@@ -1,0 +1,22 @@
+//package GraphCatchMeREST
+//import akka.actor.ActorSystem
+//import helpers.LambdaInvoker
+//import scala.concurrent.Await
+//import scala.concurrent.duration._
+//
+//object Test {
+//  def main(args: Array[String]): Unit = {
+//    implicit val system: ActorSystem = ActorSystem()
+//    implicit val url: String = "https://lbg0sr2jhd.execute-api.us-east-1.amazonaws.com/Prod/process_winner"
+//
+//    val lambdaInvoker = new LambdaInvoker()
+//
+//    val futureResponse = lambdaInvoker.invokeLambdaAndGetResponse("thief")
+//    val response = Await.result(futureResponse, 30.seconds) // Use Await only if necessary
+//
+//    println(response)
+//
+//    system.terminate()
+//  }
+//
+//}
