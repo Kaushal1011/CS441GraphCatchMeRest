@@ -1,5 +1,5 @@
 *.class
-.idea
+CS441GraphCatchMeRest/.idea
 target/
 .bsp
 input/

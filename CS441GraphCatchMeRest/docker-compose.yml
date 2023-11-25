@@ -1,7 +1,7 @@
 version: '3'
 services:
   akka-http-app:
-    build: .
+    build: ..
     volumes:
       - .:/usr/src/app
     environment:
