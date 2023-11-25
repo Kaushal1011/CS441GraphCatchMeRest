@@ -181,6 +181,34 @@ To run the client, you need to execute the main class with specific parameters. 
 sbt run <apiUrl> <policeStrategyName> <thiefStrategyName> <turnsForEachPlayer> <simulationIters> [regionalGraphPath] [queryGraphPath]
 ```
 
+### Strategy Explanation
+
+The client employs a variety of strategies to play the game. Each strategy has a different approach to decision-making.
+
+#### Base Strategies
+
+- **BaseStrategy**: Makes random moves from the available adjacent nodes.
+- **ChaseEnemyNodeStrategy**: Moves towards the closest node to the enemy agent.
+- **ChaseValuableDataStrategy**: Targets the closest node with valuable data.
+
+#### Probabilistic Strategies
+
+- **ProbabilisticChaseEnemyNodeStrategy**: Similar to `ChaseEnemyNodeStrategy`, but with a probability of random exploration.
+- **ProbabilisticChaseValuableDataStrategy**: Similar to `ChaseValuableDataStrategy`, but with a probability of random exploration.
+
+#### Confidence-Based Strategies
+
+- **ConfidenceBaseStrategy**: Focuses on high-confidence nodes, moving randomly among them.
+- **ConfidenceChaseEnemyNodeStrategy**: Chases the enemy, but only through nodes with high confidence.
+- **ConfidenceChaseValuableDataStrategy**: Moves towards valuable data, prioritizing high-confidence nodes.
+
+#### Probabilistic and Confidence-Based Strategies
+
+- **ProbabilisticBaseStrategyConf**: Combines probabilistic exploration with a preference for high-confidence nodes.
+- **ProbabilisticChaseEnemyNodeStrategyConf**: Chases the enemy with probabilistic exploration, focusing on high-confidence nodes.
+- **ProbabilisticChaseValuableDataStrategyConf**: Targets valuable data with probabilistic exploration, favoring high-confidence nodes.
+
+
 ## [CS 441 Catch Me Game (Lambda Function with GRPC Protobuf Support)](./docs/CatchMeLambdaProtobufGRPCS3.md)
 
 Click the above hyperlink for detailed documentation of the rest api.
