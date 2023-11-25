@@ -12,6 +12,11 @@ We have deployed the game rest api on AWS EC2 instance and the lambda function t
 This project is a part of an assignment in the CS441 Distributed Objects for Cloud Computing course at University of Illinois at Chicago as taught by [Dr Mark Grechanik](https://www.cs.uic.edu/~drmark/).
 The Homework Description can be found [here](https://github.com/0x1DOCD00D/CS441_Fall2023/blob/main/Homework3.md).
 
+> Note: Due to time constraints on the submission deadline (and poor time management on my part), 
+GPT4 has been used heavily in the creation of this readme and sometimes may sound like a robot wrote it. 
+The accuracy of the content however has been verfied by me during the multiple passes I made through the readme.
+
+
 ## Requirements fulfilled with features as part of the homework 3
 
 - [x] **RESTful API**: The game is deployed as a RESTful API service, allowing players to interact with the game server using HTTP requests.
