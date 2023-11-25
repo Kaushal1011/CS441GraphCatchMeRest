@@ -261,3 +261,65 @@ To use the Graph Visualizer, you need a web browser and the log files generated 
    - Use the 'Update Node Colors' button to dynamically change the node colors based on input.
    - Click 'Start Animation' to begin the gameplay animation.
 
+
+## Results and Discussion
+
+### Results
+
+The game simulations were run using various strategies for both the police and the thief agents. The outcomes are summarized in the following tables:
+
+#### Random vs. Random Strategy
+
+| Strategy         | Police Wins | Thief Wins | Draws | Average Turns |
+|------------------|-------------|------------|-------|---------------|
+| Random vs. Random | 13          | 5          | 2     | 44            |
+
+#### Chase Enemy vs. Chase Valuable Strategy
+
+| Strategy                            | Police Wins | Thief Wins | Draws | Average Turns |
+|-------------------------------------|-------------|------------|-------|---------------|
+| Chase Enemy vs. Chase Valuable      | 11          | 9          | 0     | 5             |
+
+#### Probabilistic Chase Enemy vs. Probabilistic Chase Valuable
+
+| Strategy                                         | Police Wins | Thief Wins | Draws | Average Turns |
+|--------------------------------------------------|-------------|------------|-------|---------------|
+| Probabilistic Chase Enemy vs. Chase Valuable Prob | 11          | 9          | 0     | 6             |
+
+#### Chase Enemy Confidence vs. Chase Valuable Confidence
+
+| Strategy                                            | Police Wins | Thief Wins | Draws | Average Turns |
+|-----------------------------------------------------|-------------|------------|-------|---------------|
+| Chase Enemy Confidence vs. Chase Valuable Confidence | 7           | 13         | 0     | 5             |
+
+#### Probabilistic Chase Enemy Confidence vs. Probabilistic Chase Valuable Confidence
+
+| Strategy                                                      | Police Wins | Thief Wins | Draws | Average Turns |
+|---------------------------------------------------------------|-------------|------------|-------|---------------|
+| Probabilistic Chase Enemy Confidence vs. Chase Valuable Prob Conf | 10          | 10         | 0     | 5             |
+
+#### Random Probabilistic Confidence (with Invalid Loss Flag)
+
+| Strategy                         | Police Wins | Thief Wins | Draws | Average Turns |
+|----------------------------------|-------------|------------|-------|---------------|
+| Random Probabilistic Confidence  | 3           | 2          | 0     | 31            |
+
+#### Random Confidence (with Invalid Loss Flag)
+
+| Strategy             | Police Wins | Thief Wins | Draws | Average Turns |
+|----------------------|-------------|------------|-------|---------------|
+| Random Confidence    | 2           | 3          | 0     | 18            |
+
+### Discussion
+
+The results obtained from these simulations provide interesting insights into the effectiveness of different strategies in the Policeman and Thief Graph Game:
+
+1. **Random vs. Random**: A baseline scenario where both agents make random moves. The relatively high number of turns suggests a lack of strategy leading to prolonged games.
+
+2. **Chase Enemy vs. Chase Valuable**: A more strategic approach with the police actively pursuing the thief and the thief targeting valuable nodes. This resulted in fewer average turns, indicating more decisive outcomes.
+
+3. **Probabilistic Strategies**: Introducing probabilistic elements to the chase strategies adds an element of unpredictability. It slightly increases the game length but provides a more balanced outcome between police and thief wins.
+
+4. **Confidence-Based Strategies**: Focusing on high-confidence nodes changes the dynamic significantly. Particularly, the thief tends to win more often, suggesting that confidence-based strategies might favor the thief's objectives.
+
+5. **Invalid Loss Flag**: Introducing a loss condition for invalid moves (e.g., moving to a non-adjacent node) drastically changes the outcome. It leads to more police wins in the case of `Random Probabilistic Confidence` and more thief wins in `Random Confidence`, highlighting the impact of cautious vs. risky strategies. In the case of this flag we see that the average number of turns is reduced significantly as the agents are likely to make an invalid move as thei knowledge is based on query graph.
