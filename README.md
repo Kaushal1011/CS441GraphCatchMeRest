@@ -24,9 +24,9 @@ The accuracy of the content however has been verfied by me during the multiple p
 - [x] **AWS EC2**: The game server is deployed on an Amazon EC2 instance.
 - [x] **Client with Multiple Strategies**: The game client is designed to play the game using various strategies, including probabilistic and confidence-based approaches.
 - [x] **Usage of Regional and Query Graph**: The game client uses the regional and query graph to make decisions.
-- [x] ** confidence scores and valudable data distance in api**: The rest api returns the confidence scores and the distance of the valuable data from the agent.
-- [x] ** confidence scores and valudable data distance in client**: The client uses the confidence scores and the distance of the valuable data from the agent to make decisions.
-- [x] ** dicussion of the strategies**: The strategies are discussed in the results section of this readme
+- [x] **confidence scores and valudable data distance in api**: The rest api returns the confidence scores and the distance of the valuable data from the agent.
+- [x] **confidence scores and valudable data distance in client**: The client uses the confidence scores and the distance of the valuable data from the agent to make decisions.
+- [x] **dicussion of the strategies**: The strategies are discussed in the results section of this readme
 - [x] **Visualization Tool**: The game client generates log files that can be visualized using a web-based tool, providing an interactive playback of game sessions. The tool is deployed on Vercel.
 - [x] **Docker and Docker Compose**: The game server is deployed using Docker and Docker Compose, allowing for easy deployment and testing.
 - [x] **Unit Tests**: The game server and client are tested using unit tests.
